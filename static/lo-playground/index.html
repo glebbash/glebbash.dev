@@ -1,60 +1,88 @@
 <!DOCTYPE html>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>LO</title>
+<link rel="icon" href="/lo-playground/lo.svg">
 
-<textarea id="loTextarea" rows="20" cols="40">
-export memory { min_pages: 1 };
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link href="https://cdn.jsdelivr.net/npm/beercss@3.5.1/dist/cdn/beer.min.css" rel="stylesheet">
+<script type="module" src="https://cdn.jsdelivr.net/npm/beercss@3.5.1/dist/cdn/beer.min.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@1.1.0/dist/cdn/material-dynamic-colors.min.js"></script>
 
-struct str { data: &*u8, size: u32 };
+<body class="dark">
+  <main class="responsive">
+    <h4>
+      <i class="extra small-padding">
+        <img src="/lo-playground/lo.svg">
+      </i>
+      Playground
+    </h4>
+    <div class="field textarea border extra medium-height">
+      <textarea id="loTextarea" style="
+        font-family: monospace;
+        white-space: pre;
+        overflow-wrap: normal;
+        overflow-x: auto;"></textarea>
+    </div>
+    <button id="runButton" class="responsive">
+      <i>play_arrow</i>
+      <span>Execute</span>
+    </button>
+  </main>
+</body>
 
-import from "js" {
-    fn eval(source: str);
-};
-
-export fn main() {
-    eval("alert('hello there')");
-};
-</textarea>
-<br/>
-<button id="runButton">Run</button>
 <script type="module">
-    import { init, WASI } from "https://esm.sh/@wasmer/wasi@1.2.2";
+  import { init, WASI } from "https://esm.sh/@wasmer/wasi@1.2.2";
+  import { m } from "https://esm.sh/multiline-str";
 
-    const LO_COMPILER_MODULE = await WebAssembly.compile(
-        await fetch(`${window.location.href}/lo.wasm`).then((r) => r.arrayBuffer())
-    );
+  const LO_COMPILER_MODULE = await WebAssembly.compile(
+    await fetch(`${window.location.href}/lo.wasm`).then((r) => r.arrayBuffer())
+  );
 
-    runButton.onclick = () => {
-        runLo(loTextarea.value);
+  loTextarea.value = m`
+    export memory { min_pages: 1 };
+
+    struct str { data: &*u8, size: u32 };
+
+    import from "js" {
+        fn eval(source: str);
     };
 
-    async function runLo(source) {
-        const binary = await compileLo(LO_COMPILER_MODULE, source);
-        const module = await WebAssembly.compile(binary);
-        const instance = new WebAssembly.Instance(module, {
-            js: {
-                eval: (ptr, size) => {
-                    const memory = instance.exports.memory.buffer;
-                    const buffer = new Uint8Array(memory, ptr, size);
-                    const code = new TextDecoder().decode(buffer);
-                    eval(code);
-                },
-            },
-        });
-        window.lo = instance.exports;
-        instance.exports.main();
-    }
+    export fn main() {
+        eval("alert('hello there')");
+    };
+    `;
 
-    async function compileLo(compilerModule, source) {
-        await init();
-        const wasi = new WASI({});
-        wasi.setStdinString(source);
-        await wasi.instantiate(compilerModule, {});
-        const exitCode = wasi.start();
-        if (exitCode === 0) {
-            return wasi.getStdoutBuffer();
-        } else {
-            alert("Error: " + wasi.getStderrString())
-        }
+  runButton.onclick = () => {
+    runLo(loTextarea.value);
+  };
+
+  async function runLo(source) {
+    const binary = await compileLo(LO_COMPILER_MODULE, source);
+    const module = await WebAssembly.compile(binary);
+    const instance = new WebAssembly.Instance(module, {
+      js: {
+        eval: (ptr, size) => {
+          const memory = instance.exports.memory.buffer;
+          const buffer = new Uint8Array(memory, ptr, size);
+          const code = new TextDecoder().decode(buffer);
+          eval(code);
+        },
+      },
+    });
+    window.lo = instance.exports;
+    instance.exports.main();
+  }
+
+  async function compileLo(compilerModule, source) {
+    await init();
+    const wasi = new WASI({});
+    wasi.setStdinString(source);
+    await wasi.instantiate(compilerModule, {});
+    const exitCode = wasi.start();
+    if (exitCode === 0) {
+      return wasi.getStdoutBuffer();
+    } else {
+      alert("Error: " + wasi.getStderrString());
     }
+  }
 </script>
