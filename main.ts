@@ -18,8 +18,7 @@ app.use(async (ctx) => {
       index: "index.html",
     });
   } catch {
-    ctx.response.status = 404;
-    ctx.response.body = "404 File not found";
+    return ctx.send({ root: "static", path: "404.html" });
   }
 });
 
