@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 <title>LO</title>
-<link rel="icon" href="/lo-playground/lo.svg">
+<link rel="icon" href="./lo.svg">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link href="https://cdn.jsdelivr.net/npm/beercss@3.5.1/dist/cdn/beer.min.css" rel="stylesheet">
@@ -12,7 +12,7 @@
   <main class="responsive">
     <h4>
       <i class="extra small-padding">
-        <img src="/lo-playground/lo.svg">
+        <img src="./lo.svg">
       </i>
       Playground
     </h4>
@@ -23,7 +23,7 @@
         overflow-wrap: normal;
         overflow-x: auto;"></textarea>
     </div>
-    <button id="runButton" class="responsive">
+    <button id="runButton" class="responsive" disabled>
       <i>play_arrow</i>
       <span>Execute</span>
     </button>
@@ -33,10 +33,6 @@
 <script type="module">
   import { init, WASI } from "https://esm.sh/@wasmer/wasi@1.2.2";
   import { m } from "https://esm.sh/multiline-str";
-
-  const LO_COMPILER_MODULE = await WebAssembly.compile(
-    await fetch(`${window.location.href}/lo.wasm`).then((r) => r.arrayBuffer())
-  );
 
   loTextarea.value = m`
     export memory { min_pages: 1 };
@@ -53,6 +49,11 @@
     
     `;
 
+  const LO_COMPILER_MODULE = await WebAssembly.compile(
+    await fetch(`./lo.wasm`).then((r) => r.arrayBuffer())
+  );
+
+  runButton.disabled = false;
   runButton.onclick = () => {
     runLo(loTextarea.value);
   };

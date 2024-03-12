@@ -10,7 +10,16 @@ router.get("/", (ctx) => {
 app.use(router.routes());
 app.use(router.allowedMethods());
 
+const baseUrls = [...Deno.readDirSync("static")]
+  .filter((d) => d.isDirectory)
+  .map((d) => d.name);
+
 app.use(async (ctx) => {
+  for (const baseUrl of baseUrls) {
+    if (ctx.request.url.pathname === `/${baseUrl}`) {
+      return ctx.response.redirect(`/${baseUrl}/`);
+    }
+  }
   try {
     await ctx.send({
       root: `./static`,
