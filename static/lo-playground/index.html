@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LO</title>
+
+<textarea id="loTextarea" rows="20" cols="40">
+export memory { min_pages: 1 };
+
+struct str { data: &*u8, size: u32 };
+
+import from "js" {
+    fn eval(source: str);
+};
+
+export fn main() {
+    eval("alert('hello there')");
+};
+</textarea>
+<br/>
+<button id="runButton">Run</button>
+<script type="module">
+    import { init, WASI } from "https://esm.sh/@wasmer/wasi@1.2.2";
+
+    const LO_COMPILER_MODULE = await WebAssembly.compile(
+        await fetch(`${window.location.href}/lo.wasm`).then((r) => r.arrayBuffer())
+    );
+
+    runButton.onclick = () => {
+        runLo(loTextarea.value);
+    };
+
+    async function runLo(source) {
+        const binary = await compileLo(LO_COMPILER_MODULE, source);
+        const module = await WebAssembly.compile(binary);
+        const instance = new WebAssembly.Instance(module, {
+            js: {
+                eval: (ptr, size) => {
+                    const memory = instance.exports.memory.buffer;
+                    const buffer = new Uint8Array(memory, ptr, size);
+                    const code = new TextDecoder().decode(buffer);
+                    eval(code);
+                },
+            },
+        });
+        window.lo = instance.exports;
+        instance.exports.main();
+    }
+
+    async function compileLo(compilerModule, source) {
+        await init();
+        const wasi = new WASI({});
+        wasi.setStdinString(source);
+        await wasi.instantiate(compilerModule, {});
+        const exitCode = wasi.start();
+        if (exitCode === 0) {
+            return wasi.getStdoutBuffer();
+        } else {
+            alert("Error: " + wasi.getStderrString())
+        }
+    }
+</script>
