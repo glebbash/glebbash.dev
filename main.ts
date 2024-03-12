@@ -1,14 +1,6 @@
-import { Application, Router } from "jsr:@oak/oak";
+import { Application } from "jsr:@oak/oak";
 
 const app = new Application();
-const router = new Router();
-
-router.get("/", (ctx) => {
-  ctx.response.body = "Hello there";
-});
-
-app.use(router.routes());
-app.use(router.allowedMethods());
 
 const baseUrls = [...Deno.readDirSync("static")]
   .filter((d) => d.isDirectory)
