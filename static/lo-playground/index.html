@@ -44,12 +44,12 @@
         <span>Execute</span>
       </button>
       <dialog id="samplesDialog" class="bottom">
-        <h6>Pick Example</h6>
+        <h6>Select an example:</h6>
         <div class="space"></div>
-        <a onclick="selectSample(event.target.innerHTML)" class="row wave round">
+        <a onclick="selectSample(event.target.innerHTML.trim())" class="row wave round">
           Hello World
         </a>
-        <a onclick="selectSample(event.target.innerHTML)" class="row wave round">
+        <a onclick="selectSample(event.target.innerHTML.trim())" class="row wave round">
           Factorial
         </a>
         <nav class="right-align no-space">
