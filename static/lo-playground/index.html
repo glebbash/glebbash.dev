@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 
 <title>LO Playground</title>
-<link rel="icon" href="./lo.svg">
+<link rel="icon" href="./lo.svg" />
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link href="https://cdn.jsdelivr.net/npm/beercss@3.5.1/dist/cdn/beer.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/beercss@3.5.1/dist/cdn/beer.min.css" rel="stylesheet"/>
 <script type="module" src="https://cdn.jsdelivr.net/npm/beercss@3.5.1/dist/cdn/beer.min.js"></script>
 <script type="module" src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@1.1.0/dist/cdn/material-dynamic-colors.min.js"></script>
 
@@ -12,21 +12,53 @@
   <main class="responsive">
     <h4>
       <i class="extra small-padding">
-        <img src="./lo.svg">
+        <img src="./lo.svg" />
       </i>
       Playground
+      <div class="right-align responsive">
+        <button class="small transparent border" onclick="samplesDialog.show()">
+          <i class="no-padding">arrow_drop_down</i>
+        </button>
+      </div>
     </h4>
-    <div class="field textarea border extra medium-height">
-      <textarea id="loTextarea" style="
-        font-family: monospace;
-        white-space: pre;
-        overflow-wrap: normal;
-        overflow-x: auto;"></textarea>
+    <div class="space"></div>
+    <div id="content">
+      <div class="field textarea border extra medium-height">
+        <textarea
+          id="sourceInput"
+          tabindex="-1"
+          style="
+            font-family: monospace;
+            white-space: pre;
+            overflow-wrap: normal;
+            overflow-x: auto;
+          "
+        ></textarea>
+      </div>
+      <button
+        id="execButton"
+        class="responsive transparent border no-margin"
+        disabled
+      >
+        <i>play_arrow</i>
+        <span>Execute</span>
+      </button>
+      <dialog id="samplesDialog" class="bottom">
+        <h6>Pick Example</h6>
+        <div class="space"></div>
+        <a onclick="selectSample(event.target.innerHTML)" class="row wave round">
+          Hello World
+        </a>
+        <a onclick="selectSample(event.target.innerHTML)" class="row wave round">
+          Factorial
+        </a>
+        <nav class="right-align no-space">
+          <button class="transparent" onclick="samplesDialog.close()">
+            Cancel
+          </button>
+        </nav>
+      </dialog>
     </div>
-    <button id="runButton" class="responsive" disabled>
-      <i>play_arrow</i>
-      <span>Execute</span>
-    </button>
   </main>
 </body>
 
@@ -34,28 +66,59 @@
   import { init, WASI } from "https://esm.sh/@wasmer/wasi@1.2.2";
   import { m } from "https://esm.sh/multiline-str";
 
-  loTextarea.value = m`
-    export memory { min_pages: 1 };
+  const SAMPLES = {
+    "Hello World": m`
+      export memory { min_pages: 1 };
 
-    struct str { data: &*u8, size: u32 };
+      import from "js" {
+        fn eval(str_ptr: &*u8, str_len: u32);
+      };
 
-    import from "js" {
-        fn eval(source: str);
-    };
+      export fn main() {
+        eval("alert('Hello World')");
+      };
 
-    export fn main() {
-        eval("alert('hello there')");
-    };
-    
-    `;
+      `,
+    Factorial: m`
+      import from "js" {
+        fn alert(value: u32);
+      };
+
+      export fn main() {
+        alert(factorial(5));
+      };
+
+      fn factorial(x: u32) -> u32 {
+        if x <= 2 {
+          return x;
+        };
+
+        return x * factorial(x - 1);
+      };
+
+      `,
+  };
+  window.selectSample = (sampleName) => {
+    sourceInput.value = SAMPLES[sampleName];
+    samplesDialog.close();
+  };
+  selectSample("Hello World");
+
+  // handle tab key
+  sourceInput.onkeydown = function (e) {
+    if (e.keyCode === 9) {
+      this.setRangeText("    ", this.selectionStart, this.selectionStart, "end");
+      return false;
+    }
+  };
 
   const LO_COMPILER_MODULE = await WebAssembly.compile(
     await fetch(`./lo.wasm`).then((r) => r.arrayBuffer())
   );
 
-  runButton.disabled = false;
-  runButton.onclick = () => {
-    runLo(loTextarea.value);
+  execButton.disabled = false;
+  execButton.onclick = () => {
+    runLo(sourceInput.value);
   };
 
   async function runLo(source) {
@@ -63,6 +126,7 @@
     const module = await WebAssembly.compile(binary);
     const instance = new WebAssembly.Instance(module, {
       js: {
+        alert,
         eval: (ptr, size) => {
           const memory = instance.exports.memory.buffer;
           const buffer = new Uint8Array(memory, ptr, size);
@@ -80,8 +144,7 @@
     const wasi = new WASI({});
     wasi.setStdinString(source);
     await wasi.instantiate(compilerModule, {});
-    const exitCode = wasi.start();
-    if (exitCode === 0) {
+    if (wasi.start() === 0) {
       return wasi.getStdoutBuffer();
     } else {
       alert("Error: " + wasi.getStderrString());
