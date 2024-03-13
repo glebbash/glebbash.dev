@@ -14,7 +14,7 @@ app.use(async (ctx) => {
   }
   try {
     await ctx.send({
-      root: `./static`,
+      root: "./static",
       index: "index.html",
     });
   } catch {
