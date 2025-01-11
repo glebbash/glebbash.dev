@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<canvas id="imageCanvas"></canvas>
+
+<script type="module">
+  /** @type {never} */
+  const never = void 0;
+
+  /** @type {HTMLCanvasElement} */
+  const canvas = document.getElementById("imageCanvas") ?? never;
+  const ctx = canvas.getContext("2d") ?? never;
+
+  const image = await loadImage("/image.png");
+  canvas.width = image.width;
+  canvas.height = image.height;
+
+  ctx.drawImage(image, 0, 0);
+
+  // updateImage((imageData, x, y) => {
+  //   const c = getPixel(imageData, x, y);
+  //   const res = meanMixColors([
+  //     c,
+  //     invertColor(getPixel(imageData, c.r, y + 2)),
+  //   ]);
+
+  //   putPixel(imageData, x, y, res);
+  // });
+  // updateImage(frostedGlassEffect);
+  // updateImage(dropRedsEffect);
+  // loop(() => {
+    updateImage((imageData, x, y) => {
+      const c = getPixel(imageData, x, y);
+      colorSaturize(c);
+
+      putPixel(imageData, x, y, c);
+    });
+  // });
+
+  // effects
+
+  function dropRedsEffect(imageData, x, y) {
+    if (getPixel(imageData, x, y).r < 200) {
+      putPixel(imageData, x, y, { r: 0, g: 0, b: 0, a: 255 });
+    }
+  }
+
+  function frostedGlassEffect(imageData, x, y) {
+    const getDistance = () => Math.round(Math.random() * 10);
+
+    const toMix = [];
+    for (let dx = -getDistance(); dx <= getDistance(); dx++) {
+      for (let dy = -getDistance(); dy <= getDistance(); dy++) {
+        toMix.push(getPixel(imageData, x + dx, y + dy));
+      }
+    }
+
+    const color = meanMixColors(toMix);
+
+    putPixel(imageData, x, y, color);
+  }
+
+  function minorNoiseEffect(imageData, x, y) {
+    const color = getPixel(imageData, x, y);
+    const rnd = Math.random();
+    color.r = color.r + (rnd * 255) / 5;
+    color.g = color.g + (rnd * 255) / 5;
+    color.b = color.b + (rnd * 255) / 5;
+    putPixel(imageData, x, y, color);
+  }
+
+  // color effects
+
+  function colorSaturize(c) {
+    if (c.r === Math.max(c.r, c.g, c.b)) {
+      c.r += 2;
+      c.g -= 1;
+      c.b -= 1;
+      return;
+    }
+
+    if (c.g === Math.max(c.r, c.g, c.b)) {
+      c.g += 2;
+      c.r -= 1;
+      c.b -= 1;
+      return;
+    }
+
+    if (c.b === Math.max(c.r, c.g, c.b)) {
+      c.b += 2;
+      c.g -= 1;
+      c.r -= 1;
+      return;
+    }
+  }
+
+  // utils
+
+  function loop(update) {
+    const f = () => {
+      update();
+      requestAnimationFrame(f);
+    };
+    requestAnimationFrame(f);
+  }
+
+  function updateImage(effect) {
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    for (let y = 0; y < imageData.height; y++) {
+      for (let x = 0; x < imageData.width; x++) {
+        effect(imageData, x, y);
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  function meanMixColors(colors) {
+    const color = { r: 0, g: 0, b: 0, a: 255 };
+    for (const c of colors) {
+      color.r += (c?.r ?? 0) / colors.length;
+      color.g += (c?.g ?? 0) / colors.length;
+      color.b += (c?.b ?? 0) / colors.length;
+    }
+    return color;
+  }
+
+  function invertColor({ r, g, b, a } = {}) {
+    return { r: 255 - r, g: 255 - g, b: 255 - b, a };
+  }
+
+  function getPixel(/** @type {ImageData} */ imageData, x, y) {
+    if (x < 0 || x > imageData.width - 1 || y < 0 || y > imageData.height - 1) {
+      return undefined;
+    }
+
+    const index = (y * imageData.width + x) * 4;
+    const r = imageData.data[index];
+    const g = imageData.data[index + 1];
+    const b = imageData.data[index + 2];
+    const a = imageData.data[index + 3];
+
+    return { r, g, b, a };
+  }
+
+  function putPixel(/** @type {ImageData} */ imageData, x, y, { r, g, b, a }) {
+    if (x < 0 || x > imageData.width - 1 || y < 0 || y > imageData.height - 1) {
+      return;
+    }
+
+    const index = (y * imageData.width + x) * 4;
+    imageData.data[index] = r;
+    imageData.data[index + 1] = g;
+    imageData.data[index + 2] = b;
+    imageData.data[index + 3] = a;
+  }
+
+  /** @returns {HTMLImageElement} */
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.src = src;
+
+      image.onload = () => {
+        resolve(image);
+      };
+    });
+  }
+</script>
