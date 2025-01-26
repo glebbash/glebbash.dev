@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<canvas id="canvas" width="640" height="480"></canvas>
+
+<script type="module">
+  /** @type {HTMLCanvasElement} */
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  const TIME_MULT = 5;
+  const G = 100;
+  const MX = 100;
+  const WIDTH = 640;
+  const HEIGHT = 480;
+
+  const objects = [];
+  window.objects = objects;
+
+  const sun = {
+    name: "sun",
+    color: "yellow",
+    size: 20,
+    mass: 20 * MX,
+    pos: {
+      x: WIDTH / 2,
+      y: HEIGHT / 2,
+    },
+    vel: { x: 0, y: 0 },
+  };
+  objects.push(sun);
+
+  objects.push({
+    name: "earth",
+    color: "blue",
+    size: 1,
+    mass: 1 * MX,
+    pos: {
+      x: WIDTH / 2 + WIDTH / 8,
+      y: HEIGHT / 2,
+    },
+    vel: { x: 0, y: 50 },
+    trail: Array.from({ length: 1000 }, () => ({})),
+  });
+
+  objects.push({
+    name: "mars?",
+    color: "red",
+    size: 1,
+    mass: 1 * MX,
+    pos: {
+      x: WIDTH / 2 - WIDTH / 8,
+      y: HEIGHT / 2,
+    },
+    vel: { x: 0, y: -50 },
+    trail: Array.from({ length: 1000 }, () => ({})),
+  });
+
+  canvas.addEventListener("pointerdown", (event) => {
+    const pos = {
+      x: event.clientX - canvas.getBoundingClientRect().x,
+      y: event.clientY - canvas.getBoundingClientRect().y,
+    };
+    const direction = normalize({
+      x: sun.pos.x - pos.x,
+      y: sun.pos.y - pos.y,
+    });
+    sun.vel.x += direction.x;
+    sun.vel.y += direction.y;
+
+    function normalize(p) {
+      const magnitude = Math.sqrt(p.x * p.x + p.y * p.y);
+      return { x: p.x / magnitude, y: p.y / magnitude };
+    }
+  });
+
+  // canvas.addEventListener("click", (event) => {
+  //   const pos = {
+  //     x: event.clientX - canvas.getBoundingClientRect().x,
+  //     y: event.clientY - canvas.getBoundingClientRect().y,
+  //   };
+
+  //   objects.push({
+  //     name: "???",
+  //     color: "lightblue",
+  //     size: 1,
+  //     mass: 1 * MX,
+  //     pos,
+  //     vel: { x: 0, y: 0 },
+  //   });
+  // });
+
+  function update(delta) {
+    for (let i = 0; i < objects.length; i++) {
+      const obj1 = objects[i];
+      let acc = { x: 0, y: 0 };
+
+      for (let j = 0; j < objects.length; j++) {
+        if (i === j) continue;
+
+        const obj2 = objects[j];
+        const dx = obj2.pos.x - obj1.pos.x;
+        const dy = obj2.pos.y - obj1.pos.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance === 0) continue;
+
+        const force = (G * obj1.mass * obj2.mass) / (distance * distance);
+
+        acc.x += (force * dx) / distance / obj1.mass;
+        acc.y += (force * dy) / distance / obj1.mass;
+      }
+
+      obj1.vel.x += acc.x * delta;
+      obj1.vel.y += acc.y * delta;
+    }
+
+    for (const obj of objects) {
+      if (obj.trail) {
+        obj.trail.shift();
+        obj.trail.push({ ...obj.pos });
+      }
+
+      obj.pos.x += obj.vel.x * delta;
+      obj.pos.y += obj.vel.y * delta;
+    }
+  }
+
+  function draw() {
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    for (const obj of objects) {
+      if (obj.trail) {
+        for (const t of obj.trail) {
+          if (t.x === undefined) {
+            continue;
+          }
+
+          ctx.beginPath();
+          ctx.fillStyle = obj.color ?? "white";
+          ctx.ellipse(t.x, t.y, obj.size / 2, obj.size / 2, 0, 0, 2 * Math.PI);
+          ctx.fill();
+        }
+      }
+
+      ctx.beginPath();
+      ctx.fillStyle = obj.color ?? "white";
+      ctx.ellipse(obj.pos.x, obj.pos.y, obj.size, obj.size, 0, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+  }
+
+  let lastTickTime = 0;
+  window.requestAnimationFrame(tick);
+  function tick(timestamp) {
+    const delta = (timestamp - lastTickTime) / 1000;
+    lastTickTime = timestamp;
+
+    update(0.016 * TIME_MULT);
+    draw();
+
+    window.requestAnimationFrame(tick);
+  }
+</script>
