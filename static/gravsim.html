@@ -6,6 +6,9 @@
       margin: 0;
       overflow: hidden;
   }
+  canvas {
+    touch-action: none;
+  }
 </style>
 <script type="module">
   /** @type {HTMLCanvasElement} */
@@ -33,21 +36,15 @@
 
   let spawning = false;
   canvas.addEventListener("pointerdown", (event) => {
-    event.preventDefault();
     spawning = true;
   });
   canvas.addEventListener("pointerup", () => {
     spawning = false;
   });
-  canvas.addEventListener(
-    "pointermove",
-    (event) => {
-      event.preventDefault();
-      if (!spawning) return;
-      spawn(event);
-    },
-    { passive: false }
-  );
+  canvas.addEventListener("pointermove", (event) => {
+    if (!spawning) return;
+    spawn(event);
+  });
 
   function spawn(event) {
     const pos = {
