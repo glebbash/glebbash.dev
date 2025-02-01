@@ -32,16 +32,22 @@
   window.objects = objects;
 
   let spawning = false;
-  canvas.addEventListener("pointerdown", () => {
+  canvas.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
     spawning = true;
   });
   canvas.addEventListener("pointerup", () => {
     spawning = false;
   });
-  canvas.addEventListener("pointermove", (event) => {
-    if (!spawning) return;
-    spawn(event);
-  });
+  canvas.addEventListener(
+    "pointermove",
+    (event) => {
+      event.preventDefault();
+      if (!spawning) return;
+      spawn(event);
+    },
+    { passive: false }
+  );
 
   function spawn(event) {
     const pos = {
