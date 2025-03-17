@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <ul>
   <li><a href="./lo-playground">LO Playground</a></li>
@@ -8,11 +8,12 @@
   <li><a href="./bipbupbop.html">Bip Bup Bop</a></li>
   <li><a href="./gravsim.html">GravSim</a></li>
   <li><a href="./lokception.html">LOKception</a></li>
+  <li><a href="./webgl/">WebGL</a></li>
 </ul>
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    const links = document.querySelectorAll('ul li a');
+    const links = document.querySelectorAll("ul li a");
 
     links.forEach((link, index) => {
       const hue = (index * 137.508) % 360;
@@ -20,11 +21,11 @@
     });
 
     let maxHeight = 0;
-    links.forEach(link => {
+    links.forEach((link) => {
       maxHeight = Math.max(maxHeight, link.offsetHeight);
     });
 
-    links.forEach(link => {
+    links.forEach((link) => {
       link.style.height = maxHeight + "px";
     });
   });

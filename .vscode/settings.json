@@ -1,4 +1,3 @@
 {
-    "deno.enable": true,
-    "deno.path": "./tmp/deno"
+    "deno.enablePaths": ["main.ts"]
 }
