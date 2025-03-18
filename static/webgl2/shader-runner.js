@@ -127,6 +127,7 @@ export class ShaderRunner extends HTMLElement {
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(
       gl.ARRAY_BUFFER,
+      // fill rect
       new Float32Array([-1, -1, 1, -1, 1, 1, 1, 1, -1, 1, -1, -1]),
       gl.STATIC_DRAW
     );
@@ -166,17 +167,17 @@ function compileShader(
   /** @type {GLenum} */ type,
   /** @type {string} */ source
 ) {
-  const shader =
-    gl.createShader(type) ??
-    (() => {
-      throw new Error("Shader creation failed");
-    })();
+  const shader = gl.createShader(type);
+  if (!shader) {
+    throw new Error("Shader creation failed");
+  }
 
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
     throw new Error("Shader compile error: " + gl.getShaderInfoLog(shader));
   }
+
   return shader;
 }
 
