@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WebGL</title>
+
+<style>
+  html,
+  body {
+    margin: 0;
+  }
+  body {
+    background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    overflow: hidden;
+  }
+</style>
+
+<script src="./shader-runner.js" type="module"></script>
+<shader-runner
+  animate
+  style="width: min(100vw, 100vh); height: min(100vw, 100vh)"
+/>
+
+<script>
+  let shaderIndex = 0;
+  const shaders = [
+    "./shader1.frag",
+    "./shader2.frag",
+    "./shader3.frag",
+    "./shader4.frag",
+  ];
+  const shaderRunner = document.querySelector("shader-runner");
+  shaderRunner.setAttribute("frag-src", shaders[0]);
+
+  document.body.addEventListener("click", (e) => {
+    if (e.target !== document.body) {
+      return;
+    }
+    const nextShaderUrl = shaders[++shaderIndex % shaders.length];
+    shaderRunner.setAttribute("frag-src", nextShaderUrl);
+  });
+</script>

@@ -5,7 +5,8 @@ precision highp float;
 uniform vec2 u_resolution;
 uniform vec2 u_pointer;
 
-in vec2 v;
+#define v v_vertex
+in vec2 v_vertex;
 out vec4 o_color;
 
 float zone = 0.05;
@@ -18,5 +19,5 @@ void main() {
   o_color = vec4(cos(v.x), sin(v.yx), 1);
 
   float l = d / zone;
-  o_color /= l;
+  o_color *= l;
 }
