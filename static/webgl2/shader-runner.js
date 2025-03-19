@@ -80,6 +80,8 @@ export class ShaderRunner extends HTMLElement {
 
     this.uniforms.resolution.value[0] = this.canvas.width;
     this.uniforms.resolution.value[1] = this.canvas.height;
+    this.uniforms.pointer.value[0] = this.canvas.width / 2;
+    this.uniforms.pointer.value[1] = this.canvas.height / 2;
   }
 
   static observedAttributes = ["frag-src"];
