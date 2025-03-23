@@ -16,7 +16,7 @@ async function main() {
   let time = audioCtx.currentTime;
   for (const pitch of pitches) {
     oscillator.frequency.setValueAtTime(pitch, time);
-    time += 0.2;
+    time += 0.1;
   }
 
   const gain = audioCtx.createGain();
