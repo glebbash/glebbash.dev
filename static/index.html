@@ -1,56 +1,68 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<ul>
-  <li><a href="./lo-playground">LO Playground</a></li>
-  <li><a href="./choo">Choo</a></li>
-  <li><a href="./webcam.html">Web Cam</a></li>
-  <li><a href="./bipbupbop.html">Bip Bup Bop</a></li>
-  <li><a href="./gravsim.html">GravSim</a></li>
-  <li><a href="./lokception.html">LOKception</a></li>
-  <li><a href="./webgl2/">WebGL2</a></li>
-  <li><a href="./singer/">Singer</a></li>
-</ul>
+<title>glebbash</title>
+
+<div class="box" style="border: 1px solid white; padding: 18px">
+  <span><span style="color: orange">@</span>glebbash</span>
+
+  <hr style="border: 0; border-top: 1px solid white"/>
+
+  Active projects:
+  <div class="box">
+    <a style="color: #f4bb85" href="https://github.com/glebbash/LO">LO (programming language)</a>
+    <div class="spacing"></div>
+    <a style="color: rgb(52, 145, 221)" href="https://nta.deno.dev/">NTA - Notion killer, but I'm the only user</a>
+  </div>
+
+  Creative coding:
+  <div class="box colored-links">
+    <a href="./webgl2/">WebGL2</a></li>
+    <a href="./gravsim.html">GravSim</a></li>
+    <a href="./vocal-tunes/">VocalTunes</a></li>
+    <a href="./choo/">Choo</a></li>
+    <a href="./lokception.html">LOKception</a></li>
+  </div>
+
+  Other:
+  <div class="box colored-links">
+    <a href="./webcam.html">(web)cam</a></li>
+    <a href="./lo-playground/">LO Playground</a></li>
+  </div>
+
+  About me:
+  <div class="box">
+    <a style="color: #42a644" href="https://github.com/glebbash">GitHub profile</a>
+    <div class="spacing"></div>
+    <a style="color: white" href="https://docs.google.com/document/d/1Z8ixzbLcXe5y825WafRyAehmF7yhhfr60V37ZZPvfwU/edit?usp=sharing">Resume</a>
+  </div>
+</div>
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    const links = document.querySelectorAll("ul li a");
-
-    links.forEach((link, index) => {
-      const hue = (index * 137.508) % 360;
-      link.style.backgroundColor = `hsl(${hue}, 60%, 80%)`;
-    });
-
-    let maxHeight = 0;
-    links.forEach((link) => {
-      maxHeight = Math.max(maxHeight, link.offsetHeight);
-    });
-
-    links.forEach((link) => {
-      link.style.height = maxHeight + "px";
-    });
+    const links = document.querySelectorAll(".colored-links a");
+    for (let i = 0; i< links.length; i++) {
+      const hue = (i * 137.508) % 360;
+      links[i].style.color = `hsl(${hue}, 60%, 80%)`;
+    }
   });
 </script>
 
 <style>
-  ul {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 10px;
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  body {
+    font-family: monospace;
+    font-size: 18px;
+    color: white;
+    background: black;
   }
-
-  ul li a {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 20px;
-    text-align: center;
-    text-decoration: none;
-    color: black;
-    background-color: #eee;
-    font-family: sans-serif;
+  a {
+    color: #AAA;
+    margin-bottom: 8px;
+  }
+  .box {
+    margin: 18px;
+  }
+  .spacing {
+    height: 4px
   }
 </style>
